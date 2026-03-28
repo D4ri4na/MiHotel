@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MiHotel — Sistema de Reservas</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="layout">
+  <header class="header">
+    <div class="header__logo">
+      <div class="header__logo-icono">🏨</div>
+      MiHotel
+    </div>
+  </header>
+
+  <div class="cuerpo">
+    <aside class="sidebar">
+      <div class="sidebar__perfil">
+        <div class="sidebar__avatar" id="sidebar-iniciales">DP</div>
+        <div class="sidebar__nombre" id="sidebar-nombre" style="font-weight: 600; font-size: 14px; margin-top: 8px;">Dariana Pol</div>
+        <div class="sidebar__rol" id="sidebar-rol">Recepcionista</div>
+      </div>
+
+      <nav class="sidebar__nav">
+        <ul>
+          <li class="sidebar__item" data-seccion="registro">
+            <span class="sidebar__item-icono">📝</span>
+            <span class="sidebar__item-texto">Registrar</span>
+          </li>
+
+          <li class="sidebar__item" data-submenu="sub-huespedes">
+            <span class="sidebar__item-icono">👤</span>
+            <span class="sidebar__item-texto">Huéspedes</span>
+            <span class="sidebar__item-flecha">▼</span>
+          </li>
+          <ul class="sidebar__submenu" id="sub-huespedes">
+            <li class="sidebar__subitem" data-seccion="huespedes">Ver todos</li>
+          </ul>
+
+          <li class="sidebar__item" data-submenu="sub-habitaciones">
+            <span class="sidebar__item-icono">🏠</span>
+            <span class="sidebar__item-texto">Habitaciones</span>
+            <span class="sidebar__item-flecha">▼</span>
+          </li>
+          <ul class="sidebar__submenu" id="sub-habitaciones">
+            <li class="sidebar__subitem" data-seccion="habitaciones">Ver todas</li>
+          </ul>
+
+          <li class="sidebar__item" data-seccion="reservas">
+            <span class="sidebar__item-icono">📋</span>
+            <span class="sidebar__item-texto">Reservas</span>
+          </li>
+
+          <li class="sidebar__item" data-seccion="servicios">
+            <span class="sidebar__item-icono">📞</span>
+            <span class="sidebar__item-texto">Servicios</span>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div id="main-content"></div>
+    </main>
+  </div>
+</div>
+
+<div id="modales"></div>
+<div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
