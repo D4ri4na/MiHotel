@@ -102,10 +102,8 @@ const VISTAS = {
       <tr>
         <td>${h.numero}</td>
         <td>${h.tipo}</td>
-        <td>${h.piso}</td>
         <td>${h.capacidad}</td>
         <td>${h.precio}</td>
-        <td>${h.descripcion}</td>
         <td>${h.disponible ? '✅' : '❌'}</td>
       </tr>
     `).join("");
@@ -117,10 +115,8 @@ const VISTAS = {
             <tr>
               <th>Número</th>
               <th>Tipo</th>
-              <th>Piso</th>
               <th>Capacidad</th>
               <th>Precio</th>
-              <th>Descripción</th>
               <th>Disponible</th>
             </tr>
           </thead>
