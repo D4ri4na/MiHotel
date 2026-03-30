@@ -38,5 +38,15 @@ namespace MiHotelBackend.Repositories
 
 		public async Task<TipoHabitacion?> GetTipoHabitacionByIdAsync(int id) =>
 			await _context.TiposHabitacion.FindAsync(id);
+
+		// Agrégalos dentro de la clase HotelRepository
+		public async Task<IEnumerable<Huesped>> GetAllHuespedesAsync() =>
+			await _context.Huespedes.ToListAsync();
+
+		public async Task<IEnumerable<Reserva>> GetAllReservasAsync() =>
+			await _context.Reservas.ToListAsync();
+
+		public async Task<IEnumerable<Habitacion>> GetAllHabitacionesAsync() =>
+			await _context.Habitaciones.ToListAsync();
 	}
 }

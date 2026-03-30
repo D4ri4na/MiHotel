@@ -1,52 +1,67 @@
-const MOCK = {
-  recepcionista: {
-    nombre: "Dariana Pol Aramayo",
-    rol:    "Recepcionista",
-    iniciales: "DP",
-  },
+// ==========================================
+// 1. CONFIGURACIÓN Y API (Conexión al Backend)
+// ==========================================
+const API_URL = "http://localhost:5036/api"; // Asegúrate de que este puerto sea el correcto
+const HORA_LIMITE_CHECKOUT = 12;
 
-  habitaciones: [
-    { id: 1, numero: "101", tipo: "SIMPLE",  piso: 1, precio: 450,  capacidad: 1, descripcion: "Vista al jardín",  disponible: true  },
-    { id: 2, numero: "102", tipo: "SIMPLE",  piso: 1, precio: 450,  capacidad: 1, descripcion: "Vista a la calle", disponible: false },
-    { id: 3, numero: "201", tipo: "DOBLE",   piso: 2, precio: 720,  capacidad: 2, descripcion: "Vista al patio",   disponible: true  },
-    { id: 4, numero: "202", tipo: "DOBLE",   piso: 2, precio: 720,  capacidad: 2, descripcion: "Vista al jardín",  disponible: false },
-    { id: 5, numero: "301", tipo: "SUITE",   piso: 3, precio: 1400, capacidad: 4, descripcion: "Suite presidencial", disponible: true },
-    { id: 6, numero: "302", tipo: "SUITE",   piso: 3, precio: 1200, capacidad: 3, descripcion: "Suite junior",     disponible: true  },
-  ],
-
-  huespedes: [
-    { id: 1, nombre: "María García", dni: "32145678", email: "maria@mail.com", telefono: "3511234567", iniciales: "MG", color: "#e74c3c" },
-    { id: 2, nombre: "Carlos López", dni: "28901234", email: "carlos@mail.com", telefono: "3519876543", iniciales: "CL", color: "#2980b9" },
-  ],
-
-  reservas: [
-    { id: 1, huespedId: 1, habitacionId: 2, fechaIngreso: "2026-03-20", fechaSalida: "2026-03-25", estado: "EN_CURSO", fechaCheckin: "2026-03-20T14:30", fechaCheckout: null, cargoLate: null },
-  ],
-
-  servicios: [
-    { id: 1, area: "Recepción", encargado: "Sandra Ruiz", telefono: "351-100-0001", interno: "100" },
-    { id: 2, area: "Mantenimiento", encargado: "Diego Torres", telefono: "351-100-0003", interno: "102" },
-  ],
-
-  HORA_LIMITE_CHECKOUT: 12,
+// Datos estáticos de sesión (ya que aún no hay login)
+const SESION_ACTUAL = {
+  nombre: "Dariana Pol Aramayo",
+  rol: "Recepcionista",
+  iniciales: "DP",
 };
 
-function fmtFecha(str) { return str ? new Date(str).toLocaleDateString("es-BO") : "—"; }
-function getHuesped(id) { return MOCK.huespedes.find(h => h.id === id) || {}; }
-function getHabitacion(id) { return MOCK.habitaciones.find(h => h.id === id) || {}; }
+// Cliente HTTP para comunicarnos con C#
+const API = {
+  async get(endpoint) {
+    try {
+      const res = await fetch(`${API_URL}/${endpoint}`);
+      if (!res.ok) throw new Error(`Error al obtener ${endpoint}`);
+      return await res.json();
+    } catch (e) {
+      console.error(e);
+      return []; // Devuelve un array vacío si falla para no romper la vista
+    }
+  },
+  
+  async post(endpoint, data) {
+    const res = await fetch(`${API_URL}/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error en la operación`);
+    }
+    return await res.json();
+  }
+};
+
+// ==========================================
+// 2. UTILIDADES
+// ==========================================
+function fmtFecha(str) { return str ? new Date(str).toLocaleDateString("es-BO", { hour: '2-digit', minute:'2-digit' }) : "—"; }
 function badgeEstado(estado) {
-  const mapa = { PENDIENTE: "badge--pendiente", EN_CURSO: "badge--en-curso", FINALIZADO: "badge--finalizado", CANCELADO: "badge--cancelado" };
-  return `<span class="badge ${mapa[estado]}">${estado}</span>`;
+  const mapa = { Pendiente: "badge--pendiente", EnCurso: "badge--en-curso", Finalizada: "badge--finalizado", Cancelada: "badge--cancelado" };
+  return `<span class="badge ${mapa[estado] || 'badge--pendiente'}">${estado || 'Pendiente'}</span>`;
 }
-function avatarHTML(iniciales, color) { return `<div class="tabla__avatar" style="background:${color}">${iniciales}</div>`; }
+function avatarHTML(nombre) { 
+  const inicial = nombre ? nombre.charAt(0).toUpperCase() : '?';
+  return `<div class="tabla__avatar" style="background:#2980b9">${inicial}</div>`; 
+}
 function mostrarToast(msg, tipo = "ok") {
   const t = document.getElementById("toast");
-  t.textContent = msg; t.className = `toast toast--${tipo} toast--visible`;
+  t.textContent = msg; 
+  t.className = `toast toast--${tipo} toast--visible`;
   setTimeout(() => t.classList.remove("toast--visible"), 3200);
 }
 
+// ==========================================
+// 3. VISTAS ASÍNCRONAS (Consumen la API)
+// ==========================================
 const VISTAS = {
-  registro: () => `
+  registro: async () => `
     <div class="pagina-header">
       <h1 class="pagina-header__titulo">Centro de Registros</h1>
     </div>
@@ -72,68 +87,66 @@ const VISTAS = {
     </div>
   `,
 
-  reservas: () => {
-    const filas = MOCK.reservas.map(r => {
-      const h = getHuesped(r.huespedId);
-      const hab = getHabitacion(r.habitacionId);
+  reservas: async () => {
+    // Traemos datos en paralelo para armar la tabla cruzada
+    const [reservas, huespedes, habitaciones] = await Promise.all([
+      API.get('Reservas'), API.get('Huespedes'), API.get('Habitaciones')
+    ]);
+
+    if (reservas.length === 0) return `<div class="panel"><h3>No hay reservas registradas o el servidor está apagado.</h3></div>`;
+
+    const filas = reservas.map(r => {
+      // Cruzamos los datos con los IDs
+      const h = huespedes.find(x => x.idHuesped === r.idHuespedTitular) || { nombre: "Desconocido", apellido: "" };
+      const hab = habitaciones.find(x => x.idHabitacion === r.idHabitacion) || { idHabitacion: "?" };
+      
+      const nombreCompleto = `${h.nombre} ${h.apellido}`;
+
       return `
         <tr class="tabla__fila">
-          <td>#${r.id}</td>
-          <td><div class="tabla__nombre-cel">${avatarHTML(h.iniciales, h.color)} ${h.nombre}</div></td>
-          <td>${hab.numero} (${hab.tipo})</td>
+          <td>#${r.idReserva}</td>
+          <td><div class="tabla__nombre-cel">${avatarHTML(h.nombre)} ${nombreCompleto}</div></td>
+          <td>Hab. ${hab.idHabitacion}</td>
           <td>${fmtFecha(r.fechaIngreso)}</td>
           <td>${fmtFecha(r.fechaSalida)}</td>
           <td>${badgeEstado(r.estado)}</td>
           <td>
-            ${r.estado === 'EN_CURSO' ? `<button class="btn btn--sm btn--peligro" onclick="Controllers.abrirCheckout(${r.id})">Check-out</button>` : ''}
+            ${r.estado === 'EnCurso' ? `<button class="btn btn--sm btn--peligro" onclick="Controllers.abrirCheckout(${r.idReserva})">Check-out</button>` : '—'}
           </td>
         </tr>`;
     }).join("");
-    return `<div class="panel"><table class="tabla"><thead><tr><th>#</th><th>Huésped</th><th>Hab.</th><th>Ingreso</th><th>Salida</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${filas}</tbody></table></div>`;
+    return `<div class="panel"><table class="tabla"><thead><tr><th>#</th><th>Huésped</th><th>Habitación</th><th>Ingreso</th><th>Salida</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${filas}</tbody></table></div>`;
   },
 
-  huespedes: () => {
-    const filas = MOCK.huespedes.map(h => `<tr><td>${h.nombre}</td><td>${h.dni}</td><td>${h.email}</td><td><button class="btn btn--sm" onclick="Controllers.eliminarHuesped(${h.id})">🗑</button></td></tr>`).join("");
-    return `<div class="panel"><table class="tabla"><thead><tr><th>Nombre</th><th>DNI</th><th>Email</th><th>Acciones</th></tr></thead><tbody>${filas}</tbody></table></div>`;
+  huespedes: async () => {
+    const huespedes = await API.get('Huespedes');
+    if (huespedes.length === 0) return `<div class="panel"><p>No hay huéspedes registrados.</p></div>`;
+
+    const filas = huespedes.map(h => `<tr><td>${h.nombre} ${h.apellido}</td><td>${h.ci}</td><td>${h.correoElectronico || '-'}</td><td><button class="btn btn--sm" onclick="alert('Funcionalidad en desarrollo')">🗑</button></td></tr>`).join("");
+    return `<div class="panel"><table class="tabla"><thead><tr><th>Nombre</th><th>CI</th><th>Email</th><th>Acciones</th></tr></thead><tbody>${filas}</tbody></table></div>`;
   },
   
-  habitaciones: () => {
-    const filas = MOCK.habitaciones.map(h => `
+  habitaciones: async () => {
+    const habitaciones = await API.get('Habitaciones');
+    const filas = habitaciones.map(h => `
       <tr>
-        <td>${h.numero}</td>
-        <td>${h.tipo}</td>
-        <td>${h.capacidad}</td>
-        <td>${h.precio}</td>
-        <td>${h.disponible ? '✅' : '❌'}</td>
+        <td>Hab. ${h.idHabitacion}</td>
+        <td>Tipo ${h.idTipo}</td>
+        <td>${h.estado}</td>
+        <td>${h.estado === 'Disponible' ? '✅' : '❌'}</td>
       </tr>
     `).join("");
-    return `
-      <div class="panel">
-        <h1>Habitaciones</h1>
-        <table class="tabla">
-          <thead>
-            <tr>
-              <th>Número</th>
-              <th>Tipo</th>
-              <th>Capacidad</th>
-              <th>Precio</th>
-              <th>Disponible</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${filas}
-          </tbody>
-        </table>
-      </div>
-    `;
+    return `<div class="panel"><h1>Estado de Habitaciones</h1><table class="tabla"><thead><tr><th>Número</th><th>Tipo</th><th>Estado</th><th>Disponibilidad</th></tr></thead><tbody>${filas}</tbody></table></div>`;
   },
-  servicios: () => {
-    const filas = MOCK.servicios.map(s => `<tr><td>${s.area}</td><td>${s.encargado}</td><td>${s.telefono}</td></tr>`).join("");
-    return `<div class="panel"><table class="tabla"><thead><tr><th>Área</th><th>Encargado</th><th>Teléfono</th></tr></thead><tbody>${filas}</tbody></table></div>`;
+
+  servicios: async () => {
+    return `<div class="panel"><h3>Servicios (Requiere crear endpoint en C#)</h3></div>`;
   }
 };
 
-// --- CONTROLLERS ---
+// ==========================================
+// 4. CONTROLADORES (Lógica de UI y Peticiones)
+// ==========================================
 const Controllers = {
   abrirModalHuesped() {
     document.getElementById("modales").innerHTML = `
@@ -142,38 +155,56 @@ const Controllers = {
           <div class="modal__header"><span>Registrar Huésped</span><button onclick="cerrarModal('modal-huesped')">✕</button></div>
           <div class="modal__cuerpo">
             <form class="form" id="form-huesped">
-              <input class="form__input" type="text" name="nombre" placeholder="Nombre completo" required />
-              <input class="form__input" type="text" name="dni" placeholder="DNI" required />
+              <input class="form__input" type="text" id="h-nombre" placeholder="Nombre" required />
+              <input class="form__input" type="text" id="h-apellido" placeholder="Apellido" required />
+              <input class="form__input" type="text" id="h-ci" placeholder="Carnet de Identidad (CI)" required />
+              <input class="form__input" type="text" id="h-telefono" placeholder="Número de Teléfono" requiered />
+              <input class= "form__input" type="text" id="h-correoElectronico" placeholder="Correo Electronico" />
             </form>
           </div>
-          <div class="modal__pie"><button class="btn btn--primario" onclick="Controllers.guardarHuesped()">Guardar</button></div>
+          <div class="modal__pie"><button class="btn btn--primario" onclick="Controllers.guardarHuesped()">Registrar</button></div>
         </div>
       </div>`;
   },
 
-  guardarHuesped() {
-    const fd = new FormData(document.getElementById("form-huesped"));
-    const nombre = fd.get("nombre").trim();
-    const dni = fd.get("dni").trim();
-    if (!nombre || !dni) return mostrarToast("Completa los campos", "error");
-    if (MOCK.huespedes.some(h => h.dni === dni)) return mostrarToast("Error: DNI duplicado", "error");
-    MOCK.huespedes.push({ id: Date.now(), nombre, dni, iniciales: nombre[0].toUpperCase(), color: "#2980b9" });
-    cerrarModal("modal-huesped"); navegarA("huespedes"); mostrarToast("Huésped registrado");
+  async guardarHuesped() {
+    const nombre = document.getElementById("h-nombre").value.trim();
+    const apellido = document.getElementById("h-apellido").value.trim();
+    const ci = document.getElementById("h-ci").value.trim();
+    const telefono = document.getElementById("h-telefono").value.trim();
+    const correoElectronico = document.getElementById(h-correoElectronico).value.trim();
+
+    if (!nombre || !apellido || !ci || !telefono ) return mostrarToast("Completa los campos requeridos", "error");
+
+    try {
+      // Envía el POST real a C#
+      await API.post('Huespedes', { nombre, apellido, ci, telefono, correoElectronico });
+      cerrarModal("modal-huesped"); 
+      navegarA("huespedes"); 
+      mostrarToast("¡Huésped guardado en Supabase!");
+    } catch (error) {
+      mostrarToast(error.message, "error");
+    }
   },
 
   abrirModalReserva() {
-    mostrarToast("Abriendo formulario de reserva...");
+    mostrarToast("Formulario de reserva en construcción...", "ok");
   },
 
   abrirCheckout(id) {
-    const ahora = new Date().toISOString().slice(0, 16);
+    // Formateamos la hora actual para el input datetime-local
+    const ahora = new Date();
+    ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+    const valorHora = ahora.toISOString().slice(0, 16);
+
     document.getElementById("modales").innerHTML = `
       <div class="modal-fondo modal-fondo--visible" id="modal-checkout">
         <div class="modal">
           <div class="modal__header"><span>Check-out Reserva #${id}</span></div>
           <div class="modal__cuerpo">
-            <input class="form__input" type="datetime-local" id="fechaCheckout" value="${ahora}" onchange="Controllers.evaluarLateCheckout(this.value)" />
-            <div id="aviso-late" class="form__nota" style="display:none; margin-top:10px">⚠ Salida tardía: se aplicará cargo extra</div>
+            <label>Fecha y Hora de Salida Efectiva:</label>
+            <input class="form__input" type="datetime-local" id="fechaCheckout" value="${valorHora}" onchange="Controllers.evaluarLateCheckout(this.value)" />
+            <div id="aviso-late" class="form__nota" style="display:none; margin-top:10px; color:red;">⚠ Salida tardía detectada. El servidor calculará el recargo.</div>
           </div>
           <div class="modal__pie">
             <button class="btn" onclick="cerrarModal('modal-checkout')">Cancelar</button>
@@ -181,33 +212,80 @@ const Controllers = {
           </div>
         </div>
       </div>`;
+      
+      this.evaluarLateCheckout(valorHora);
   },
 
   evaluarLateCheckout(valor) {
     const hora = new Date(valor).getHours();
-    document.getElementById("aviso-late").style.display = hora >= MOCK.HORA_LIMITE_CHECKOUT ? "block" : "none";
+    document.getElementById("aviso-late").style.display = hora >= HORA_LIMITE_CHECKOUT ? "block" : "none";
   },
 
-  confirmarCheckout(id) {
-    const r = MOCK.reservas.find(x => x.id === id);
-    r.estado = "FINALIZADO";
-    cerrarModal("modal-checkout"); navegarA("reservas"); mostrarToast("Salida registrada");
+  async confirmarCheckout(idReserva) {
+    const fechaSalida = document.getElementById('fechaCheckout').value;
+    cerrarModal("modal-checkout");
+    
+    // Mostramos un loader mientras C# procesa
+    const main = document.getElementById("main-content");
+    main.innerHTML = `<div class="panel"><h2>⏳ Procesando Check-out en Supabase...</h2></div>`;
+
+    try {
+      const resultado = await API.post(`Reservas/${idReserva}/checkout`, fechaSalida);
+      
+      const recargo = resultado.reserva.montoLateCheckout;
+      main.innerHTML = `
+        <div class="panel" style="border-left: 5px solid #27ae60;">
+          <h2>✅ Check-out Registrado con Éxito</h2>
+          <p><strong>Reserva #:</strong> ${resultado.reserva.idReserva}</p>
+          <p><strong>Estado:</strong> Finalizada</p>
+          <h3 style="color: ${recargo > 0 ? '#e74c3c' : '#27ae60'};">
+            ${recargo > 0 ? `⚠️ Recargo por Late Check-out aplicado: Bs. ${recargo}` : 'Salida a tiempo. Sin recargos adicionales.'}
+          </h3>
+          <br>
+          <button class="btn btn--primario" onclick="navegarA('reservas')">Volver a Reservas</button>
+        </div>
+      `;
+    } catch (error) {
+      mostrarToast(error.message, "error");
+      navegarA('reservas'); // Si falla, recargamos la tabla
+    }
   }
 };
 
-function navegarA(seccion) {
+// ==========================================
+// 5. NAVEGACIÓN Y ARRANQUE
+// ==========================================
+async function navegarA(seccion) {
   const main = document.getElementById("main-content");
-  main.innerHTML = VISTAS[seccion] ? VISTAS[seccion]() : "";
-  document.querySelectorAll("[data-seccion]").forEach(el => el.classList.toggle("sidebar__item--activo", el.dataset.seccion === seccion));
+  if (!main) return;
+  
+  // Estado de carga visual
+  main.innerHTML = `<div class="panel"><p>⏳ Cargando datos...</p></div>`;
+  
+  if (VISTAS[seccion]) {
+    main.innerHTML = await VISTAS[seccion](); // Espera a que la promesa (fetch) termine
+  }
+  
+  document.querySelectorAll("[data-seccion]").forEach(el => 
+    el.classList.toggle("sidebar__item--activo", el.dataset.seccion === seccion)
+  );
 }
 
 function cerrarModal(id) { document.getElementById(id)?.remove(); }
 
+// Variables globales para el HTML
+window.navegarA = navegarA;
+window.Controllers = Controllers;
+window.cerrarModal = cerrarModal;
+
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("sidebar-nombre").textContent = MOCK.recepcionista.nombre;
-  document.getElementById("sidebar-rol").textContent = MOCK.recepcionista.rol;
-  document.getElementById("sidebar-iniciales").textContent = MOCK.recepcionista.iniciales;
-  document.querySelectorAll("[data-seccion]").forEach(el => el.addEventListener("click", () => navegarA(el.dataset.seccion)));
-  document.querySelectorAll("[data-submenu]").forEach(el => el.addEventListener("click", () => document.getElementById(el.dataset.submenu).classList.toggle("sidebar__submenu--visible")));
+  document.getElementById("sidebar-nombre").textContent = SESION_ACTUAL.nombre;
+  document.getElementById("sidebar-rol").textContent = SESION_ACTUAL.rol;
+  document.getElementById("sidebar-iniciales").textContent = SESION_ACTUAL.iniciales;
+  
+  document.querySelectorAll("[data-seccion]").forEach(el => 
+    el.addEventListener("click", () => navegarA(el.dataset.seccion))
+  );
+  
   navegarA("registro");
 });
