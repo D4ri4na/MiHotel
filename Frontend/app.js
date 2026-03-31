@@ -351,20 +351,139 @@ const Controllers = {
     }
   },
 
+  // Nueva lógica de Check-in con mejor UI
   async confirmarCheckin(idReserva) {
-    const main = document.getElementById("main-content");
-    main.innerHTML = `<div class="panel" style="padding: 40px; text-align: center;"><h2>⏳ Procesando Check-in en Supabase...</h2></div>`;
-    try {
-      const resultado = await API.post(`Reservas/${idReserva}/checkin`, {});
-      main.innerHTML = `<div class="panel" style="border-left: 6px solid #2980b9; padding: 30px;"><h2 style="margin-bottom: 20px; color: #2980b9;">✅ Check-in Registrado Correctamente</h2><p><strong>Reserva #:</strong> ${resultado.reserva.idReserva}</p><p><strong>Nuevo Estado:</strong> En Curso</p><button class="btn btn--primario" onclick="navegarA('reservas')">Volver a Reservas</button></div>`;
-    } catch (error) { mostrarToast(`❌ Error: ${error.message}`, "error"); navegarA('reservas'); }
+    // 1. Buscamos la reserva en los datos cargados para mostrar un resumen
+    const reservas = await API.get('Reservas');
+    const r = reservas.find(res => res.idReserva === idReserva);
+    const huespedes = await API.get('Huespedes');
+    const h = huespedes.find(x => x.idHuesped === r.idHuespedTitular);
+
+    // 2. Abrimos un modal de confirmación antes de procesar
+    document.getElementById("modales").innerHTML = `
+      <div class="modal-fondo modal-fondo--visible" id="modal-confirm-checkin">
+        <div class="modal">
+          <div class="modal__header">
+            <span class="modal__titulo">Confirmar Inicio de Estadía</span>
+            <button class="modal__cerrar" onclick="cerrarModal('modal-confirm-checkin')">✕</button>
+          </div>
+          <div class="modal__cuerpo">
+            <p style="margin-bottom: 15px;">¿Confirmas el ingreso del huésped para la <strong>Reserva #${idReserva}</strong>?</p>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #2980b9;">
+              <div style="font-size: 13px; color: #666;">HUÉSPED</div>
+              <div style="font-weight: 600; margin-bottom: 10px;">${h.nombre} ${h.apellido}</div>
+              <div style="font-size: 13px; color: #666;">HABITACIÓN ASIGNADA</div>
+              <div style="font-weight: 600;">Habitación #${r.idHabitacion}</div>
+            </div>
+          </div>
+          <div class="modal__pie">
+            <button class="btn" onclick="cerrarModal('modal-confirm-checkin')">Cancelar</button>
+            <button class="btn btn--primario" id="btn-proceder-checkin">Confirmar Ingreso</button>
+          </div>
+        </div>
+      </div>`;
+
+    document.getElementById("btn-proceder-checkin").onclick = async () => {
+      cerrarModal('modal-confirm-checkin');
+      const main = document.getElementById("main-content");
+      main.innerHTML = `<div class="panel" style="padding: 40px; text-align: center; color: #666;"><h3>⏳ Registrando ingreso en el sistema...</h3></div>`;
+      
+      try {
+        const resultado = await API.post(`Reservas/${idReserva}/checkin`, {});
+        // Pantalla de éxito estilo "Voucher"
+        main.innerHTML = `
+          <div class="panel" style="max-width: 600px; margin: 0 auto; border-top: 5px solid #27ae60;">
+            <div style="padding: 30px; text-align: center;">
+              <div style="font-size: 50px; margin-bottom: 15px;">✅</div>
+              <h2 style="color: #27ae60; margin-bottom: 10px;">Check-in Exitoso</h2>
+              <p style="color: #666; margin-bottom: 25px;">La habitación #${r.idHabitacion} ahora está marcada como <strong>En Curso</strong>.</p>
+              
+              <div style="text-align: left; background: #fdfdfd; border: 1px dashed #ddd; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #888;">Reserva:</span> <span style="font-weight: 600;">#${idReserva}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #888;">Huésped:</span> <span style="font-weight: 600;">${h.nombre} ${h.apellido}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: #888;">Hora de Ingreso:</span> <span style="font-weight: 600;">${new Date().toLocaleTimeString()}</span>
+                </div>
+              </div>
+              
+              <button class="btn btn--primario" onclick="navegarA('reservas')">Volver al Panel de Control</button>
+            </div>
+          </div>`;
+      } catch (error) {
+        mostrarToast(error.message, "error");
+        navegarA('reservas');
+      }
+    };
   },
 
   abrirCheckout(id) {
-    const ahora = new Date(); ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+    const ahora = new Date(); 
+    ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
     const valorHora = ahora.toISOString().slice(0, 16);
-    document.getElementById("modales").innerHTML = `<div class="modal-fondo modal-fondo--visible" id="modal-checkout"><div class="modal"><div class="modal__header"><span class="modal__titulo">Check-out Reserva #${id}</span><button class="modal__cerrar" onclick="cerrarModal('modal-checkout')">✕</button></div><div class="modal__cuerpo"><label class="form__label">Fecha y Hora de Salida Efectiva:</label><input class="form__input" style="margin-top: 8px;" type="datetime-local" id="fechaCheckout" value="${valorHora}" onchange="Controllers.evaluarLateCheckout(this.value)" /><div id="aviso-late" class="form__nota" style="display:none; margin-top:12px; border-color:#e74c3c; background:#fdf0ef; color:#c0392b;"><strong>⚠ Atención:</strong> Salida tardía detectada. El servidor calculará el recargo correspondiente.</div></div><div class="modal__pie"><button class="btn" onclick="cerrarModal('modal-checkout')">Cancelar</button><button class="btn btn--peligro" onclick="Controllers.confirmarCheckout(${id})">Confirmar Salida</button></div></div></div>`;
+
+    document.getElementById("modales").innerHTML = `
+      <div class="modal-fondo modal-fondo--visible" id="modal-checkout">
+        <div class="modal">
+          <div class="modal__header">
+            <span class="modal__titulo">Finalizar Estadía — Reserva #${id}</span>
+            <button class="modal__cerrar" onclick="cerrarModal('modal-checkout')">✕</button>
+          </div>
+          <div class="modal__cuerpo">
+            <div class="form">
+              <div class="form__campo">
+                <label class="form__label">Fecha y Hora de Salida Real</label>
+                <input class="form__input" type="datetime-local" id="fechaCheckout" 
+                       value="${valorHora}" onchange="Controllers.evaluarLateCheckout(this.value)" />
+              </div>
+              
+              <div id="aviso-late" class="form__nota" style="display:none; margin-top:15px; border-color: #c0392b; color: #c0392b; background: #fdf0ef;">
+                <strong>⚠️ Late Check-out detectado:</strong> 
+                Se aplicará un recargo automático del 50% sobre la tarifa base de la habitación.
+              </div>
+            </div>
+          </div>
+          <div class="modal__pie">
+            <button class="btn" onclick="cerrarModal('modal-checkout')">Cancelar</button>
+            <button class="btn btn--peligro" onclick="Controllers.confirmarCheckout(${id})">Confirmar Check-out</button>
+          </div>
+        </div>
+      </div>`;
     this.evaluarLateCheckout(valorHora);
+  },
+
+  async confirmarCheckout(idReserva) {
+    const fechaSalida = document.getElementById('fechaCheckout').value;
+    cerrarModal("modal-checkout");
+    const main = document.getElementById("main-content");
+    main.innerHTML = `<div class="panel" style="padding: 40px; text-align: center; color: #666;"><h3>⏳ Calculando consumos y recargos...</h3></div>`;
+
+    try {
+      const resultado = await API.post(`Reservas/${idReserva}/checkout`, fechaSalida);
+      const recargo = resultado.reserva.montoLateCheckout;
+      
+      main.innerHTML = `
+        <div class="panel" style="max-width: 600px; margin: 0 auto; border-top: 5px solid ${recargo > 0 ? '#c0392b' : '#27ae60'};">
+          <div style="padding: 30px; text-align: center;">
+            <div style="font-size: 50px; margin-bottom: 15px;">🏁</div>
+            <h2 style="margin-bottom: 10px;">Estadía Finalizada</h2>
+            <p style="color: #666; margin-bottom: 25px;">La reserva <strong>#${idReserva}</strong> ha sido cerrada y la habitación liberada.</p>
+            
+            <div style="background: ${recargo > 0 ? '#fdf0ef' : '#f0fbf4'}; border: 1px solid ${recargo > 0 ? '#e74c3c' : '#27ae60'}; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+              <div style="font-size: 13px; color: ${recargo > 0 ? '#c0392b' : '#27ae60'}; text-transform: uppercase; font-weight: 700;">Total Recargos por Salida Tardía</div>
+              <div style="font-size: 24px; font-weight: 700; margin-top: 5px;">Bs. ${recargo.toFixed(2)}</div>
+            </div>
+            
+            <button class="btn btn--primario" onclick="navegarA('reservas')">Volver al Listado</button>
+          </div>
+        </div>`;
+    } catch (error) {
+      mostrarToast(error.message, "error");
+      navegarA('reservas');
+    }
   },
 
   evaluarLateCheckout(valor) {
@@ -372,16 +491,7 @@ const Controllers = {
     document.getElementById("aviso-late").style.display = hora >= HORA_LIMITE_CHECKOUT ? "block" : "none";
   },
 
-  async confirmarCheckout(idReserva) {
-    const fechaSalida = document.getElementById('fechaCheckout').value; cerrarModal("modal-checkout");
-    const main = document.getElementById("main-content");
-    main.innerHTML = `<div class="panel" style="padding: 40px; text-align: center;"><h2>⏳ Procesando Check-out...</h2></div>`;
-    try {
-      const resultado = await API.post(`Reservas/${idReserva}/checkout`, fechaSalida);
-      const recargo = resultado.reserva.montoLateCheckout;
-      main.innerHTML = `<div class="panel" style="border-left: 6px solid #27ae60; padding: 30px;"><h2 style="margin-bottom: 20px;">✅ Check-out Registrado con Éxito</h2><p><strong>Reserva #:</strong> ${resultado.reserva.idReserva}</p><p><strong>Estado:</strong> Finalizada</p><div style="background: ${recargo > 0 ? '#fdf0ef' : '#f0fbf4'}; border: 1px solid ${recargo > 0 ? '#e74c3c' : '#27ae60'}; padding: 15px; border-radius: 8px; margin-bottom: 25px;"><h3 style="color: ${recargo > 0 ? '#c0392b' : '#27ae60'}; margin: 0;">${recargo > 0 ? `⚠️ Se aplicó un recargo por Late Check-out de: <strong>Bs. ${recargo}</strong>` : 'Salida a tiempo. Sin recargos.'}</h3></div><button class="btn btn--primario" onclick="navegarA('reservas')">Volver a Reservas</button></div>`;
-    } catch (error) { mostrarToast(error.message, "error"); navegarA('reservas'); }
-  }
+ 
 };
 
 // ==========================================

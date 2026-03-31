@@ -17,6 +17,7 @@ namespace MiHotelBackend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetServicios()
         {
+            // Corregido a plural para coincidir con el Repositorio
             var servicios = await _repo.GetContactosServiciosAsync();
             return Ok(servicios);
         }
