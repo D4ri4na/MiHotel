@@ -3,6 +3,9 @@ using MiHotelBackend.Data;
 using MiHotelBackend.Repositories;
 using MiHotelBackend.Services;
 
+// ESTA ES LA LÍNEA MÁGICA QUE ARREGLA EL PROBLEMA DE LAS FECHAS DE POSTGRESQL
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 var connString = builder.Configuration.GetConnectionString("SupabaseConnection");

@@ -62,17 +62,66 @@ namespace MiHotelBackend.Models
         public int IdHuespedTitular { get; set; }
         [Column("id_habitacion")]
         public int IdHabitacion { get; set; }
-        [Column("fecha_estimada_ingreso")]
+
+        // AQUÍ ESTÁ LA SOLUCIÓN: Le decimos que en la BD esto es un "date"
+        [Column("fecha_estimada_ingreso", TypeName = "date")]
         public DateTime FechaIngreso { get; set; }
-        [Column("fecha_estimada_salida")]
+
+        [Column("fecha_estimada_salida", TypeName = "date")]
         public DateTime FechaSalida { get; set; }
+
         [Column("fecha_hora_checkin")]
         public DateTime? FechaCheckin { get; set; }
+
         [Column("fecha_hora_checkout")]
         public DateTime? FechaCheckout { get; set; }
+
         [Column("estado_reserva")]
         public string Estado { get; set; } = "Pendiente";
+
         [Column("monto_late_checkout")]
         public decimal? MontoLateCheckout { get; set; }
+    }
+    [Table("servicios")]
+    public class Servicio
+    {
+        [Key]
+        [Column("id_servicio")]
+        public int IdServicio { get; set; }
+
+        [Column("nombre_servicio")]
+        public string NombreServicio { get; set; } = string.Empty;
+    }
+
+    [Table("empleados")]
+    public class Empleado
+    {
+        [Key]
+        [Column("id_empleado")]
+        public int IdEmpleado { get; set; }
+
+        // AHORA USAMOS LAS DOS COLUMNAS QUE PEDISTE
+        [Column("nombre")]
+        public string Nombre { get; set; } = string.Empty;
+
+        [Column("apellido")]
+        public string Apellido { get; set; } = string.Empty;
+
+        [Column("telefono")]
+        public string Telefono { get; set; } = string.Empty;
+    }
+
+    [Table("contactoservicios")]
+    public class ContactoServicio
+    {
+        [Key]
+        [Column("id_contacto")]
+        public int IdContacto { get; set; }
+
+        [Column("id_servicio")]
+        public int IdServicio { get; set; }
+
+        [Column("id_empleado_encargado")]
+        public int IdEmpleadoEncargado { get; set; }
     }
 }
