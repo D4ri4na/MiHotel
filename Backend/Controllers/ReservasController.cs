@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using MiHotelBackend.Models.DTOs;
+using MiHotelBackend.Repositories.Interfaces;
 using MiHotelBackend.Services;
-using MiHotelBackend.Repositories;
+using MiHotelBackend.Services.Interfaces;
 
 namespace MiHotelBackend.Controllers
 {
@@ -8,13 +10,13 @@ namespace MiHotelBackend.Controllers
     [Route("api/[controller]")]
     public class ReservasController : ControllerBase
     {
-        private readonly ReservaService _reservaService;
-        private readonly IHotelRepository _repo;
+        private readonly IReservaRepository _repo;
+        private readonly IReservaService _service;
 
-        public ReservasController(ReservaService reservaService, IHotelRepository repo)
+        public ReservasController(IReservaRepository repo, IReservaService service)
         {
-            _reservaService = reservaService;
             _repo = repo;
+            _service = service;
         }
 
         [HttpGet]
@@ -24,14 +26,12 @@ namespace MiHotelBackend.Controllers
             return Ok(reservas);
         }
 
-        // Endpoint para crear reserva
         [HttpPost]
-        public async Task<IActionResult> CrearReserva([FromBody] NuevaReservaDto dto)
+        public async Task<IActionResult> CrearReserva([FromBody] ReservaCreateDto dto)
         {
             try
             {
-                var reserva = await _reservaService.CrearReservaAsync(
-                    dto.IdHuespedTitular, dto.IdHabitacion, dto.FechaIngreso, dto.FechaSalida, dto.CantidadPersonas);
+                var reserva = await _service.CrearReservaAsync(dto.IdHuespedTitular, dto.IdHabitacion, dto.FechaIngreso, dto.FechaSalida, dto.CantidadPersonas);
                 return Ok(reserva);
             }
             catch (Exception ex)
@@ -40,41 +40,32 @@ namespace MiHotelBackend.Controllers
             }
         }
 
-        [HttpPost("{id}/checkout")]
-        public async Task<IActionResult> Checkout(int id, [FromBody] DateTime fechaSalida)
-        {
-            try
-            {
-                var resultado = await _reservaService.RegistrarCheckoutAsync(id, fechaSalida);
-                return Ok(new { mensaje = "Check-out exitoso", reserva = resultado });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
-        // HU-04: Endpoint para Check-in
         [HttpPost("{id}/checkin")]
-        public async Task<IActionResult> Checkin(int id)
+        public async Task<IActionResult> CheckIn(int id)
         {
             try
             {
-                var resultado = await _reservaService.RegistrarCheckinAsync(id);
-                return Ok(new { mensaje = "Check-in exitoso", reserva = resultado });
+                var reserva = await _service.RegistrarCheckinAsync(id);
+                return Ok(new { mensaje = "Check-in exitoso", reserva });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { error = ex.Message });
             }
         }
-    }
 
-    public class NuevaReservaDto
-    {
-        public int IdHuespedTitular { get; set; }
-        public int IdHabitacion { get; set; }
-        public DateTime FechaIngreso { get; set; }
-        public DateTime FechaSalida { get; set; }
-        public int CantidadPersonas { get; set; }
+        [HttpPost("{id}/checkout")]
+        public async Task<IActionResult> CheckOut(int id, [FromBody] DateTime fechaSalida)
+        {
+            try
+            {
+                var reserva = await _service.RegistrarCheckoutAsync(id, fechaSalida);
+                return Ok(new { mensaje = "Check-out exitoso", reserva });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

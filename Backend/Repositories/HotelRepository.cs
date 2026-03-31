@@ -33,7 +33,6 @@ namespace MiHotelBackend.Repositories
             return reserva;
         }
 
-        // AQUÍ ESTÁ LA LÓGICA RECUPERADA PARA CREAR LA RESERVA
         public async Task<Reserva> AddReservaAsync(Reserva reserva)
         {
             _context.Reservas.Add(reserva);
@@ -61,13 +60,12 @@ namespace MiHotelBackend.Repositories
 
         public async Task<IEnumerable<object>> GetContactosServiciosAsync()
         {
-            var query = from contacto in _context.ContactosServicios // Asegúrate de que el DbSet se llama así en HotelDbContext
+            var query = from contacto in _context.ContactosServicios 
                         join servicio in _context.Servicios on contacto.IdServicio equals servicio.IdServicio
                         join empleado in _context.Empleados on contacto.IdEmpleadoEncargado equals empleado.IdEmpleado
                         select new
                         {
                             NombreServicio = servicio.NombreServicio,
-                            // AQUÍ UNIMOS EL NOMBRE Y EL APELLIDO CON UN ESPACIO
                             Encargado = empleado.Nombre + " " + empleado.Apellido,
                             Telefono = empleado.Telefono
                         };

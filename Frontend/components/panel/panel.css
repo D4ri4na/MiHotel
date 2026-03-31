@@ -1,0 +1,26 @@
+.panel { 
+    background: var(--superficie); 
+    border-radius: var(--radio); 
+    box-shadow: var(--sombra); 
+    overflow: hidden; 
+    margin-bottom: 20px;
+}
+.panel__barra { 
+    padding: 14px 20px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    border-bottom: 1px solid var(--borde); 
+    flex-wrap: wrap; 
+    gap: 10px; 
+}
+.panel__barra-izq { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+}
+@media (max-width: 768px) { 
+    .panel__barra { 
+        flex-direction: column; align-items: flex-start; 
+    } 
+}

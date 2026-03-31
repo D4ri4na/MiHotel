@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MiHotel — Sistema de Reservas</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="main.css" />
 </head>
 <body>
 
@@ -26,30 +26,11 @@
 
       <nav class="sidebar__nav">
         <ul>
-          <li class="sidebar__item" data-seccion="registro">
-            <span class="sidebar__item-icono">📝</span>
-            <span class="sidebar__item-texto">Registrar</span>
-          </li>
-
-          <li class="sidebar__item" data-seccion="huespedes">
-            <span class="sidebar__item-icono">👤</span>
-            <span class="sidebar__item-texto">Huéspedes</span>
-          </li>
-
-          <li class="sidebar__item" data-seccion="habitaciones">
-            <span class="sidebar__item-icono">🏠</span>
-            <span class="sidebar__item-texto">Habitaciones</span>
-          </li>
-
-          <li class="sidebar__item" data-seccion="reservas">
-            <span class="sidebar__item-icono">📋</span>
-            <span class="sidebar__item-texto">Reservas</span>
-          </li>
-
-          <li class="sidebar__item" data-seccion="servicios">
-            <span class="sidebar__item-icono">📞</span>
-            <span class="sidebar__item-texto">Servicios</span>
-          </li>
+          <li class="sidebar__item" data-seccion="registro"><span class="sidebar__item-icono">📝</span><span class="sidebar__item-texto">Registrar</span></li>
+          <li class="sidebar__item" data-seccion="huespedes"><span class="sidebar__item-icono">👤</span><span class="sidebar__item-texto">Huéspedes</span></li>
+          <li class="sidebar__item" data-seccion="habitaciones"><span class="sidebar__item-icono">🏠</span><span class="sidebar__item-texto">Habitaciones</span></li>
+          <li class="sidebar__item" data-seccion="reservas"><span class="sidebar__item-icono">📋</span><span class="sidebar__item-texto">Reservas</span></li>
+          <li class="sidebar__item" data-seccion="servicios"><span class="sidebar__item-icono">📞</span><span class="sidebar__item-texto">Servicios</span></li>
         </ul>
       </nav>
     </aside>
@@ -63,6 +44,6 @@
 <div id="modales"></div>
 <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
-<script src="app.js"></script>
+<script type="module" src="main.js"></script>
 </body>
 </html>

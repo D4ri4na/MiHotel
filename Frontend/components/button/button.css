@@ -1,0 +1,30 @@
+.btn { 
+    display: inline-flex;
+    align-items: center; 
+    justify-content: center; 
+    gap: 6px; padding: 8px 16px; 
+    border-radius: var(--radio); 
+    border: 1px solid var(--borde); 
+    background: #fff; 
+    color: var(--texto); 
+    font-size: 13px; 
+    font-weight: 500; 
+    cursor: pointer; 
+    transition: background .15s, border-color .15s; 
+}
+.btn:hover { 
+    background: #f5f5f5; 
+}
+.btn--primario, .btn--peligro { 
+    background: var(--rojo); 
+    border-color: var(--rojo); 
+    color: #fff;
+}
+.btn--primario:hover, .btn--peligro:hover { 
+    background: var(--rojo-dark); 
+    border-color: var(--rojo-dark); 
+}
+.btn--sm {
+    padding: 5px 10px; 
+    font-size: 12px; 
+}

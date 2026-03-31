@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MiHotelBackend.Models;
-using MiHotelBackend.Repositories;
+using MiHotelBackend.Repositories.Interfaces;
 
 namespace MiHotelBackend.Controllers
 {
@@ -8,14 +8,13 @@ namespace MiHotelBackend.Controllers
     [Route("api/[controller]")]
     public class HuespedesController : ControllerBase
     {
-        private readonly IHotelRepository _repo;
+        private readonly IHuespedRepository _repo;
 
-        public HuespedesController(IHotelRepository repo)
+        public HuespedesController(IHuespedRepository repo)
         {
             _repo = repo;
         }
 
-        // Responde a: GET /api/Huespedes
         [HttpGet]
         public async Task<IActionResult> GetHuespedes()
         {
@@ -23,23 +22,14 @@ namespace MiHotelBackend.Controllers
             return Ok(huespedes);
         }
 
-        // Responde a: POST /api/Huespedes (Desde tu modal de JavaScript)
         [HttpPost]
-        public async Task<IActionResult> CrearHuesped([FromBody] Huesped huesped)
+        public async Task<IActionResult> RegistrarHuesped([FromBody] Huesped huesped)
         {
-            try
-            {
-                // Validación: Evitar CI duplicado (Criterio de Aceptación HU-01)
-                var existente = await _repo.GetHuespedByCIAsync(huesped.CI);
-                if (existente != null) return BadRequest(new { error = "Ya existe un huésped con este CI." });
+            var existente = await _repo.GetHuespedByCIAsync(huesped.CI);
+            if (existente != null) return BadRequest(new { error = "El CI ya está registrado en el sistema." });
 
-                var nuevoHuesped = await _repo.AddHuespedAsync(huesped);
-                return Ok(nuevoHuesped);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var nuevo = await _repo.AddHuespedAsync(huesped);
+            return Ok(nuevo);
         }
     }
 }

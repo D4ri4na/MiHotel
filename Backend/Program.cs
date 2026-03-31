@@ -1,23 +1,30 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MiHotelBackend.Data;
-using MiHotelBackend.Repositories;
+using MiHotelBackend.Repositories.Interfaces;
+using MiHotelBackend.Repositories.Implementations;
 using MiHotelBackend.Services;
-
-// ESTA ES LA LÍNEA MÁGICA QUE ARREGLA EL PROBLEMA DE LAS FECHAS DE POSTGRESQL
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+using MiHotelBackend.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-
-var connString = builder.Configuration.GetConnectionString("SupabaseConnection");
-builder.Services.AddDbContext<HotelDbContext>(opt => opt.UseNpgsql(connString));
-
-builder.Services.AddScoped<IHotelRepository, HotelRepository>();
-builder.Services.AddScoped<HabitacionFactory>();
-builder.Services.AddScoped<ReservaService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddCors(options => {
+    options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
+
+builder.Services.AddDbContext<HotelDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IHuespedRepository, HuespedRepository>();
+builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
+builder.Services.AddScoped<IHabitacionRepository, HabitacionRepository>();
+builder.Services.AddScoped<IServicioRepository, ServicioRepository>();
+
+builder.Services.AddScoped<IReservaService, ReservaService>();
+builder.Services.AddScoped<HabitacionFactory>();
 
 var app = builder.Build();
 
@@ -27,8 +34,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-
+app.UseCors();
 app.UseAuthorization();
 app.MapControllers();
 

@@ -1,0 +1,50 @@
+.tabla {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+.tabla__encabezado th {
+	padding: 10px 14px;
+	text-align: left;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .4px;
+	color: var(--suave);
+	background: #fafafa;
+	border-bottom: 2px solid var(--borde);
+	white-space: nowrap;
+}
+.tabla__fila td {
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--borde);
+	vertical-align: middle;
+}
+.tabla__fila:last-child td {
+	border-bottom: none;
+}
+.tabla__fila:hover td {
+	background: #fdf9f9;
+}
+.tabla__avatar {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 700;
+	color: #fff;
+}
+.tabla__nombre-cel {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.tabla__celda--vacio {
+	text-align: left;
+	padding: 32px;
+	color: var(--suave);
+	font-style: italic;
+}

@@ -9,7 +9,6 @@ namespace MiHotelBackend.Repositories
 
         Task<Reserva?> GetReservaByIdAsync(int id);
         Task<Reserva> UpdateReservaAsync(Reserva reserva);
-        // AQUÍ ESTÁ LA FUNCIÓN RECUPERADA:
         Task<Reserva> AddReservaAsync(Reserva reserva);
 
         Task<Habitacion?> GetHabitacionByIdAsync(int id);

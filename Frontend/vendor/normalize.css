@@ -1,0 +1,16 @@
+:root {
+  --rojo:       #c0392b;
+  --rojo-dark:  #962d22;
+  --bg:         #f0f2f5;
+  --superficie: #ffffff;
+  --borde:      #e0e0e0;
+  --texto:      #2c2c2c;
+  --suave:      #888888;
+  --radio:      6px;
+  --sombra:     0 2px 8px rgba(0,0,0,.08);
+  --fuente:     'Segoe UI', system-ui, Arial, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body  { font-family: var(--fuente); font-size: 14px; color: var(--texto); background: var(--bg); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+ul    { list-style: none; }
+button { cursor: pointer; font-family: var(--fuente); }

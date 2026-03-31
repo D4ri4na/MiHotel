@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using MiHotelBackend.Repositories;
+using MiHotelBackend.Repositories.Interfaces;
 
 namespace MiHotelBackend.Controllers
 {
@@ -7,9 +7,9 @@ namespace MiHotelBackend.Controllers
     [Route("api/[controller]")]
     public class ServiciosController : ControllerBase
     {
-        private readonly IHotelRepository _repo;
+        private readonly IServicioRepository _repo;
 
-        public ServiciosController(IHotelRepository repo)
+        public ServiciosController(IServicioRepository repo)
         {
             _repo = repo;
         }
@@ -17,7 +17,6 @@ namespace MiHotelBackend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetServicios()
         {
-            // Corregido a plural para coincidir con el Repositorio
             var servicios = await _repo.GetContactosServiciosAsync();
             return Ok(servicios);
         }
