@@ -22,25 +22,44 @@ const VISTAS = {
 async function navegarA(seccion) {
   const main = document.getElementById("main-content"); 
   if (!main) return;
+
   main.innerHTML = `<div class="panel" style="padding: 40px; text-align: center; color: var(--suave);">⏳ Cargando interfaz...</div>`;
-  if (VISTAS[seccion]) main.innerHTML = await VISTAS[seccion](); 
-  document.querySelectorAll("[data-seccion]").forEach(el => el.classList.toggle("sidebar__item--activo", el.dataset.seccion === seccion));
+  
+  try {
+    if (VISTAS[seccion]) {
+        main.innerHTML = await VISTAS[seccion](); 
+    }
+    document.querySelectorAll("[data-seccion]").forEach(el => 
+        el.classList.toggle("sidebar__item--activo", el.dataset.seccion === seccion)
+    );
+  } catch (error) {
+    console.error(`Error al cargar la sección ${seccion}:`, error);
+    main.innerHTML = `<div class="panel" style="padding: 20px; color: #e74c3c; text-align: center;">Ocurrió un error al cargar esta sección.</div>`;
+  }
 }
 
 window.navegarA = navegarA;
 window.cerrarModal = cerrarModal;
+
 window.Controllers = {
     ...HuespedCtrl,
     ...ReservaCtrl,
     ...CheckoutCtrl
 };
 
-document.getElementById("sidebar-nombre").textContent = SESION_ACTUAL.nombre;
-document.getElementById("sidebar-rol").textContent = SESION_ACTUAL.rol;
-document.getElementById("sidebar-iniciales").textContent = SESION_ACTUAL.iniciales;
+document.addEventListener("DOMContentLoaded", () => {
+  
+  const elNombre = document.getElementById("sidebar-nombre");
+  const elRol = document.getElementById("sidebar-rol");
+  const elIniciales = document.getElementById("sidebar-iniciales");
 
-document.querySelectorAll("[data-seccion]").forEach(el => 
-  el.addEventListener("click", () => navegarA(el.dataset.seccion))
-);
+  if(elNombre) elNombre.textContent = SESION_ACTUAL.nombre;
+  if(elRol) elRol.textContent = SESION_ACTUAL.rol;
+  if(elIniciales) elIniciales.textContent = SESION_ACTUAL.iniciales;
 
-navegarA("registro");
+  document.querySelectorAll("[data-seccion]").forEach(el => 
+    el.addEventListener("click", () => navegarA(el.dataset.seccion))
+  );
+
+  navegarA("registro");
+});

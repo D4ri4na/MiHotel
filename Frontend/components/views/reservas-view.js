@@ -9,7 +9,19 @@ export async function getReservasView() {
   const reservasMostrables = reservas.filter(r => r.estado === 'Pendiente' || r.estado === 'EnCurso');
   reservasMostrables.sort((a, b) => new Date(a.fechaIngreso) - new Date(b.fechaIngreso));
 
-  const cabecera = `<div class="panel__barra"><div class="panel__barra-izq"><h2 style="font-size: 16px; font-weight: 600; margin:0; color: var(--texto);">Control de Reservas y Estadías</h2></div></div>`;
+  const cabecera = `
+    <div class="panel__barra" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+      <div class="panel__barra-izq">
+        <h2 style="font-size: 16px; font-weight: 600; margin:0; color: var(--texto);">Gestión de Reservas</h2>
+      </div>
+      <div class="panel__barra-der" style="display: flex; gap: 10px;">
+        
+        <button style="padding: 8px 16px; background-color: #f312ce; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.2s;" 
+                onclick="Controllers.mostrarCheckOutHabitaciones()">
+           Checkout Por Habitaciones
+        </button>
+      </div>
+    </div>`;
 
   if (reservasMostrables.length === 0) return `<div class="panel">${cabecera}<div class="tabla__celda--vacio">No hay reservas activas o futuras registradas en este momento.</div></div>`;
 

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MiHotelBackend.Models.DTOs;
 using MiHotelBackend.Repositories.Interfaces;
-using MiHotelBackend.Services;
 using MiHotelBackend.Services.Interfaces;
 
 namespace MiHotelBackend.Controllers
@@ -36,7 +35,9 @@ namespace MiHotelBackend.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                // Extraemos el error oculto de la base de datos
+                string detalle = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return BadRequest(new { error = detalle });
             }
         }
 
@@ -50,7 +51,8 @@ namespace MiHotelBackend.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                string detalle = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return BadRequest(new { error = detalle });
             }
         }
 
@@ -64,7 +66,8 @@ namespace MiHotelBackend.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                string detalle = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return BadRequest(new { error = detalle });
             }
         }
     }

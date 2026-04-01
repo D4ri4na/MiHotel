@@ -5,6 +5,9 @@ using MiHotelBackend.Repositories.Implementations;
 using MiHotelBackend.Services;
 using MiHotelBackend.Services.Interfaces;
 
+// 👇 ESTA ES LA LÍNEA MÁGICA QUE SOLUCIONA EL ERROR DE LAS FECHAS EN POSTGRESQL 👇
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();

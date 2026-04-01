@@ -95,7 +95,71 @@ export function mostrarResumenHabitacion(idHabitacionStr) {
     if (parseInt(inputPersonas.value) > tipo.capacidadMaxima) inputPersonas.value = tipo.capacidadMaxima;
   }
 }
+export async function mostrarCheckOutHabitaciones() {
+  try {
+    const habitaciones = await API.get('Habitaciones');
+    const tipos = await API.get('Habitaciones/Tipos');
+    const reservas = await API.get('Reservas');
 
+    const mapaTipos = {};
+    if (tipos) {
+      tipos.forEach(t => {
+        mapaTipos[t.idTipo] = t.nombreTipo || t.nombre; 
+      });
+    }
+
+    const conteoCheckouts = {};
+    if (reservas) {
+      reservas.forEach(r => {
+        if (r.estado === 'Finalizada') { 
+          conteoCheckouts[r.idHabitacion] = (conteoCheckouts[r.idHabitacion] || 0) + 1;
+        }
+      });
+    }
+
+    const filas = (habitaciones || []).map(hab => {
+      const totalCheckouts = conteoCheckouts[hab.idHabitacion] || 0;
+      const nombreTipo = mapaTipos[hab.idTipo] || 'Estándar';
+
+      return `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px 0;">
+            <strong>Hab. ${hab.idHabitacion}</strong> 
+            <span style="color:#7f8c8d; font-size:12px; margin-left: 5px;">(${nombreTipo})</span>
+          </td>
+          <td style="text-align:center; padding: 10px 0; color:${totalCheckouts > 0 ? '#000000' : '#aaa'}; font-weight: bold; font-size: 15px;">
+            ${totalCheckouts}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById("modales").innerHTML = `
+      <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;">
+        <div style="background:#fff;padding:20px 25px 15px 25px;border-radius:10px;min-width:320px;max-width:95vw;box-shadow:0 5px 15px rgba(0,0,0,0.3); font-family: sans-serif;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <span style="font-weight:700;font-size:16px; color: #2c3e50;">Checkouts por Habitacion</span>
+            <button onclick="document.getElementById('modales').innerHTML=''" style="background:none;border:none;font-size:20px;cursor:pointer; color: #7f8c8d;">✕</button>
+          </div>
+          <div style="max-height: 350px; overflow-y: auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;text-align:left;">
+              <thead style="background-color: #f8f9fa; position: sticky; top: 0;">
+                <tr>
+                  <th style="padding: 10px 5px; color: #34495e; border-bottom: 2px solid #ddd;">Habitación</th>
+                  <th style="padding: 10px 5px; text-align:center; color: #34495e; border-bottom: 2px solid #ddd;">Total</th>
+                </tr>
+              </thead>
+              <tbody>${filas}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    console.error("Error al cargar las estadísticas:", error);
+    alert("Ocurrió un error al calcular los check-outs.");
+  }
+}
 export async function guardarReserva() {
   const idHuespedTitular = parseInt(document.getElementById("r-huesped").value);
   const idHabitacion = parseInt(document.getElementById("r-habitacion").value);
