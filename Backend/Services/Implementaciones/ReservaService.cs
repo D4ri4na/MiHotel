@@ -80,24 +80,12 @@ namespace MiHotelBackend.Services
             reserva.Estado = EstadoFinalizada;
 
             var tipoHab = await _factory.ObtenerCaracteristicasBaseAsync(reserva.IdHabitacion);
-            reserva.MontoLateCheckout = CalcularMora(fechaCheckoutEfectiva, reserva.FechaSalida, tipoHab.PrecioBase);
+
+            reserva.CalcularYAplicarMora(fechaCheckoutEfectiva, tipoHab.PrecioBase, HoraLimiteCheckout);
 
             await LiberarHabitacionAsync(reserva.IdHabitacion);
 
             return await _reservaRepo.UpdateReservaAsync(reserva);
-        }
-
-        private decimal CalcularMora(DateTime fechaEfectiva, DateTime fechaSalidaReal, decimal precioBase)
-        {
-            bool esDiaPosterior = fechaEfectiva.Date > fechaSalidaReal.Date;
-            bool esMismoDiaTarde = fechaEfectiva.Date == fechaSalidaReal.Date &&
-                                   fechaEfectiva.TimeOfDay >= new TimeSpan(HoraLimiteCheckout, 0, 0);
-
-            if (esDiaPosterior || esMismoDiaTarde)
-            {
-                return precioBase * RecargoLateCheckout;
-            }
-            return 0;
         }
 
         private async Task LiberarHabitacionAsync(int idHabitacion)

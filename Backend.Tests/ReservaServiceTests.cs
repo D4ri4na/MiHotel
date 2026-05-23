@@ -58,5 +58,6 @@ namespace Backend.Tests
             var excepcion = await Assert.ThrowsAsync<Exception>(() => service.RegistrarCheckoutAsync(1, DateTime.Now));
             Assert.Equal("Esta reserva ya ha sido finalizada.", excepcion.Message);
         }
+
     }
 }

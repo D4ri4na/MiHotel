@@ -34,5 +34,14 @@ namespace MiHotelBackend.Models
 
         [Column("monto_late_checkout")]
         public decimal? MontoLateCheckout { get; set; }
+
+        public void CalcularYAplicarMora(DateTime fechaEfectiva, decimal precioBase, int horaLimite = 12)
+        {
+            bool esDiaPosterior = fechaEfectiva.Date > this.FechaSalida.Date;
+            bool esMismoDiaTarde = fechaEfectiva.Date == this.FechaSalida.Date &&
+                                   fechaEfectiva.TimeOfDay >= new TimeSpan(horaLimite, 0, 0);
+
+            this.MontoLateCheckout = (esDiaPosterior || esMismoDiaTarde) ? (precioBase * 0.5m) : 0;
+        }
     }
 }
