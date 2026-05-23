@@ -2,7 +2,6 @@ import { API } from '../../api/api.js';
 import { avatarHTML } from '../../utils/helpers.js';
 
 export async function getHuespedesView() {
-  // Solo necesitamos la lista de huéspedes
   const huespedes = await API.get('Huespedes');
 
   const cabecera = `<div class="panel__barra"><div class="panel__barra-izq"><h2 style="font-size: 16px; font-weight: 600; margin:0; color: var(--texto);">Directorio de Huéspedes Registrados</h2></div></div>`;

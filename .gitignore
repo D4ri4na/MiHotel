@@ -6,3 +6,9 @@ bin/
 obj/
 
 *.vscode/
+
+Frontend/components/
+Frontend/node_modules
+Frontend/coverage/
+
+Backend/ReporteCobertura
