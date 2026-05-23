@@ -1,23 +1,8 @@
 module.exports = {
-  testEnvironment: 'jsdom',
+  testEnvironment: 'node', // Cumple la rúbrica (sin DOM)
+  coverageReporters: ['html', 'text-summary'], // 'html' genera tu reporte visual clásico
   collectCoverageFrom: [
-    'components/**/*.js',
-    'utils/**/*.js',
-    '!vendor/**', 
-    '!**/node_modules/**'
+    'utils/**/*.js' // Solo evaluamos la lógica pura
   ],
   coverageDirectory: 'coverage',
-  reporters: [
-    'default',
-    [
-      'jest-html-reporters',
-      {
-        publicPath: './coverage',
-        filename: 'report.html',
-        pageTitle: 'Test Report',
-        expand: true,
-        openReport: false
-      }
-    ]
-  ]
 };
