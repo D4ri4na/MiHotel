@@ -33,7 +33,7 @@ namespace MiHotelBackend.Controllers
                 var reserva = await _service.CrearReservaAsync(dto.IdHuespedTitular, dto.IdHabitacion, dto.FechaIngreso, dto.FechaSalida, dto.CantidadPersonas);
                 return Ok(reserva);
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
                 // Extraemos el error oculto de la base de datos
                 string detalle = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
@@ -49,7 +49,7 @@ namespace MiHotelBackend.Controllers
                 var reserva = await _service.RegistrarCheckinAsync(id);
                 return Ok(new { mensaje = "Check-in exitoso", reserva });
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
                 string detalle = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 return BadRequest(new { error = detalle });
@@ -64,7 +64,7 @@ namespace MiHotelBackend.Controllers
                 var reserva = await _service.RegistrarCheckoutAsync(id, fechaSalida);
                 return Ok(new { mensaje = "Check-out exitoso", reserva });
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
                 string detalle = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 return BadRequest(new { error = detalle });

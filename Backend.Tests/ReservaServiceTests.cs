@@ -59,5 +59,20 @@ namespace Backend.Tests
             Assert.Equal("Esta reserva ya ha sido finalizada.", excepcion.Message);
         }
 
+        // Prueba unitaria de la defensa
+        [Fact]
+        public void CalcularYAplicarMora_SalidaTardeMismoDia_AplicaRecargoDel50PorCiento()
+        {
+            var reserva = new Reserva
+            {
+                FechaSalida = new DateTime(2026, 5, 20, 10, 0, 0) 
+            };
+            DateTime checkoutEfectivo = new DateTime(2026, 5, 20, 14, 0, 0);
+            decimal precioBaseHabitacion = 100m;
+
+            reserva.CalcularYAplicarMora(checkoutEfectivo, precioBaseHabitacion);
+
+            Assert.Equal(50m, reserva.MontoLateCheckout); 
+        }
     }
 }
