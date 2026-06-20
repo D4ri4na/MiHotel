@@ -74,5 +74,19 @@ namespace Backend.Tests
 
             Assert.Equal(50m, reserva.MontoLateCheckout); 
         }
+
+        //EF
+        [Fact]
+        public void CalcularTotalEstadia_DebeRetornarMontoCorrecto_ParaMultiplesNoches()
+        {
+            var reservaService = new ReservaService();
+            var checkIn = new DateTime(2026, 7, 1);
+            var checkOut = new DateTime(2026, 7, 4); 
+            decimal tarifaPorNoche = 50m;
+
+            var total = reservaService.CalcularTotalEstadia(checkIn, checkOut, tarifaPorNoche);
+
+            Assert.Equal(150m, total);
+        }
     }
 }
