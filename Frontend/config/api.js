@@ -1,4 +1,4 @@
-const API_URL = "https://mihotel-production.up.railway.app/api";
+const API_URL = "https://mihotel-api.onrender.com/api";
 
 export const API = {
   async get(endpoint) {
