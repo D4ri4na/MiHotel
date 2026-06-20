@@ -1,4 +1,4 @@
-import { API } from '../../api/api.js';
+import { API } from '../../config/api.js';
 
 export async function getServiciosView() {
   const servicios = await API.get('Servicios');

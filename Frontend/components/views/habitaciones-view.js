@@ -1,4 +1,4 @@
-import { API } from '../../api/api.js';
+import { API } from '../../config/api.js';
 import { badgeEstado } from '../../utils/helpers.js';
 
 export async function getHabitacionesView() {
