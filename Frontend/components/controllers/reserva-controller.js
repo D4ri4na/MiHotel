@@ -1,4 +1,4 @@
-import { API } from '../../api/api.js';
+import { API } from '../../config/api.js';
 import { mostrarToast } from '../../utils/helpers.js';
 import { cerrarModal } from '../modal/modal.js';
 
