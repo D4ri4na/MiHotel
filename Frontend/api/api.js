@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5036/api"; 
+const API_BASE_URL = 'https://mihotel-production.up.railway.app/';
 
 export const API = {
   async get(endpoint) {
