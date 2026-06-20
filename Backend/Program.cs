@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MiHotelBackend.Data;
 using MiHotelBackend.Repositories.Interfaces;
 using MiHotelBackend.Repositories.Implementations;
@@ -38,11 +38,10 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.EnsureCreated();
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.UseCors();
 app.UseAuthorization();
