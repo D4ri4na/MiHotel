@@ -107,5 +107,6 @@ namespace MiHotelBackend.Services
             int noches = Math.Max(1, (checkOut - checkIn).Days);
             return noches * tarifaNoche;
         }
+        
     }
 }

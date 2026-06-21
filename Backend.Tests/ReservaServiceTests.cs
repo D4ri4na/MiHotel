@@ -88,5 +88,17 @@ namespace Backend.Tests
 
             Assert.Equal(150m, total);
         }
+
+        [Fact]
+        public void ConfirmarReserva_HabitacionNoDisponible_DebeLanzarExcepcion()
+        {
+            var reservaService = new ReservaService(null!, null!, null!); 
+            var habitacionOcupada = new Habitacion { Estado = "Ocupada" }; 
+            var nuevaReserva = new Reserva();
+
+            Assert.Throws<InvalidOperationException>(() => 
+                reservaService.ValidarDisponibilidad(habitacionOcupada, nuevaReserva)
+            );
+        }
     }
 }
