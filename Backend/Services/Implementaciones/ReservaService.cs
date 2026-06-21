@@ -108,12 +108,19 @@ namespace MiHotelBackend.Services
             return noches * tarifaNoche;
         }
 
+        public static class EstadosHabitacion 
+        {
+            public const string Disponible = "Disponible";
+            public const string Ocupada = "Ocupada";
+            public const string Mantenimiento = "Mantenimiento";
+        }
+
         public void ValidarDisponibilidad(Habitacion habitacion, Reserva reserva)
         {
-            if (habitacion.Estado == "Ocupada")
+            if (habitacion.Estado != EstadosHabitacion.Disponible)
             {
-                throw new InvalidOperationException("La habitacin no esta disponible para reservar");
+                throw new InvalidOperationException($"Reserva rechazada: La habitación se encuentra en estado '{habitacion.Estado}'.");
             }
-}
+        }
     }
 }
