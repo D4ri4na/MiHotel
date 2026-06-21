@@ -32,18 +32,14 @@ namespace MiHotelBackend.Services
 
             var tipo = await _factory.ObtenerCaracteristicasBaseAsync(idHabitacion);
             if (personas > tipo.CapacidadMaxima)
-                throw new InvalidOperationException($"La habitaci�n solo permite {tipo.CapacidadMaxima} personas.");
+                throw new InvalidOperationException($"La habitación solo permite {tipo.CapacidadMaxima} personas.");
 
             var reservasExistentes = await _reservaRepo.GetAllReservasAsync();
-            var choca = reservasExistentes.Any(r =>
-                r.IdHabitacion == idHabitacion &&
-                r.Estado != EstadoCancelada &&
-                r.Estado != EstadoFinalizada &&
-                ingreso.Date < r.FechaSalida.Date &&
-                salida.Date > r.FechaIngreso.Date);
+            
+            var choca = reservasExistentes.Any(r => ReservaSeSolapa(r, idHabitacion, ingreso, salida));
 
             if (choca)
-                throw new InvalidOperationException("La habitaci�n ya est� reservada en esas fechas.");
+                throw new InvalidOperationException("La habitación ya está reservada en esas fechas.");
 
             var nueva = new Reserva
             {
@@ -61,8 +57,8 @@ namespace MiHotelBackend.Services
         {
             var reserva = await _reservaRepo.GetReservaByIdAsync(idReserva);
             if (reserva == null) throw new InvalidOperationException("Reserva no encontrada.");
-            if (reserva.Estado == EstadoCancelada) throw new InvalidOperationException("La reserva est� cancelada.");
-            if (reserva.Estado == EstadoEnCurso) throw new InvalidOperationException("El hu�sped ya realiz� el Check-in.");
+            if (reserva.Estado == EstadoCancelada) throw new InvalidOperationException("La reserva está cancelada.");
+            if (reserva.Estado == EstadoEnCurso) throw new InvalidOperationException("El huésped ya realizó el Check-in.");
 
             reserva.FechaCheckin = DateTime.UtcNow;
             reserva.Estado = EstadoEnCurso;
@@ -95,6 +91,15 @@ namespace MiHotelBackend.Services
             {
                 hab.Estado = HabitacionDisponible;
             }
+        }
+
+        private bool ReservaSeSolapa(Reserva r, int idHabitacion, DateTime ingreso, DateTime salida)
+        {
+            bool esMismaHabitacion = r.IdHabitacion == idHabitacion;
+            bool estaActiva = r.Estado != EstadoCancelada && r.Estado != EstadoFinalizada;
+            bool hayCruceDeFechas = ingreso.Date < r.FechaSalida.Date && salida.Date > r.FechaIngreso.Date;
+
+            return esMismaHabitacion && estaActiva && hayCruceDeFechas;
         }
 
         public decimal CalcularTotalEstadia(DateTime checkIn, DateTime checkOut, decimal tarifaNoche)
