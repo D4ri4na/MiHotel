@@ -107,6 +107,13 @@ namespace MiHotelBackend.Services
             int noches = Math.Max(1, (checkOut - checkIn).Days);
             return noches * tarifaNoche;
         }
-        
+
+        public void ValidarDisponibilidad(Habitacion habitacion, Reserva reserva)
+        {
+            if (habitacion.Estado == "Ocupada")
+            {
+                throw new InvalidOperationException("La habitacin no esta disponible para reservar");
+            }
+}
     }
 }
