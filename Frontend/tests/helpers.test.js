@@ -1,4 +1,5 @@
 import { badgeEstado, avatarHTML, HORA_LIMITE_CHECKOUT } from '../utils/helpers.js';
+import { validarFechasReserva } from '../config/validador.js';
 
 describe('Pruebas Unitarias - Lógica de Negocio Frontend', () => {
 

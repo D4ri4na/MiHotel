@@ -19,4 +19,5 @@ export const API = {
     }
     return await res.json();
   }
+  
 };
