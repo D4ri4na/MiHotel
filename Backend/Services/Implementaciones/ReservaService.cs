@@ -32,7 +32,7 @@ namespace MiHotelBackend.Services
 
             var tipo = await _factory.ObtenerCaracteristicasBaseAsync(idHabitacion);
             if (personas > tipo.CapacidadMaxima)
-                throw new InvalidOperationException($"La habitación solo permite {tipo.CapacidadMaxima} personas.");
+                throw new InvalidOperationException($"La habitaciï¿½n solo permite {tipo.CapacidadMaxima} personas.");
 
             var reservasExistentes = await _reservaRepo.GetAllReservasAsync();
             var choca = reservasExistentes.Any(r =>
@@ -43,7 +43,7 @@ namespace MiHotelBackend.Services
                 salida.Date > r.FechaIngreso.Date);
 
             if (choca)
-                throw new InvalidOperationException("La habitación ya está reservada en esas fechas.");
+                throw new InvalidOperationException("La habitaciï¿½n ya estï¿½ reservada en esas fechas.");
 
             var nueva = new Reserva
             {
@@ -61,8 +61,8 @@ namespace MiHotelBackend.Services
         {
             var reserva = await _reservaRepo.GetReservaByIdAsync(idReserva);
             if (reserva == null) throw new InvalidOperationException("Reserva no encontrada.");
-            if (reserva.Estado == EstadoCancelada) throw new InvalidOperationException("La reserva está cancelada.");
-            if (reserva.Estado == EstadoEnCurso) throw new InvalidOperationException("El huésped ya realizó el Check-in.");
+            if (reserva.Estado == EstadoCancelada) throw new InvalidOperationException("La reserva estï¿½ cancelada.");
+            if (reserva.Estado == EstadoEnCurso) throw new InvalidOperationException("El huï¿½sped ya realizï¿½ el Check-in.");
 
             reserva.FechaCheckin = DateTime.UtcNow;
             reserva.Estado = EstadoEnCurso;
@@ -95,6 +95,12 @@ namespace MiHotelBackend.Services
             {
                 hab.Estado = HabitacionDisponible;
             }
+        }
+
+        public decimal CalcularTotalEstadia(DateTime checkIn, DateTime checkOut, decimal tarifaNoche)
+        {
+            int noches = (checkOut - checkIn).Days;
+            return noches * tarifaNoche;
         }
     }
 }
