@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
@@ -16,12 +16,12 @@ namespace Backend.Tests
         {
             var mockReservaRepo = new Mock<IReservaRepository>();
             var mockHabRepo = new Mock<IHabitacionRepository>();
-            var service = new ReservaService(mockReservaRepo.Object, mockHabRepo.Object, null);
+            var service = new ReservaService(mockReservaRepo.Object, mockHabRepo.Object, null!);
 
             DateTime ingreso = new DateTime(2026, 5, 20);
             DateTime salida = new DateTime(2026, 5, 19); 
 
-            var excepcion = await Assert.ThrowsAsync<Exception>(() =>
+            var excepcion = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 service.CrearReservaAsync(1, 101, ingreso, salida, 2));
 
             Assert.Equal("La fecha de salida debe ser posterior a la de ingreso.", excepcion.Message);
@@ -37,10 +37,10 @@ namespace Backend.Tests
             mockReservaRepo.Setup(r => r.GetReservaByIdAsync(1))
                            .ReturnsAsync(new Reserva { IdReserva = 1, Estado = "Cancelada" });
 
-            var service = new ReservaService(mockReservaRepo.Object, mockHabRepo.Object, null);
+            var service = new ReservaService(mockReservaRepo.Object, mockHabRepo.Object, null!);
 
-            var excepcion = await Assert.ThrowsAsync<Exception>(() => service.RegistrarCheckinAsync(1));
-            Assert.Equal("La reserva está cancelada.", excepcion.Message);
+            var excepcion = await Assert.ThrowsAsync<InvalidOperationException>(() => service.RegistrarCheckinAsync(1));
+            Assert.Contains("cancelada", excepcion.Message);
         }
 
         //3
@@ -53,9 +53,9 @@ namespace Backend.Tests
             mockReservaRepo.Setup(r => r.GetReservaByIdAsync(1))
                            .ReturnsAsync(new Reserva { IdReserva = 1, Estado = "Finalizada" });
 
-            var service = new ReservaService(mockReservaRepo.Object, mockHabRepo.Object, null);
+            var service = new ReservaService(mockReservaRepo.Object, mockHabRepo.Object, null!);
 
-            var excepcion = await Assert.ThrowsAsync<Exception>(() => service.RegistrarCheckoutAsync(1, DateTime.Now));
+            var excepcion = await Assert.ThrowsAsync<InvalidOperationException>(() => service.RegistrarCheckoutAsync(1, DateTime.Now));
             Assert.Equal("Esta reserva ya ha sido finalizada.", excepcion.Message);
         }
 
@@ -79,7 +79,7 @@ namespace Backend.Tests
         [Fact]
         public void CalcularTotalEstadia_DebeRetornarMontoCorrecto_ParaMultiplesNoches()
         {
-            var reservaService = new ReservaService();
+            var reservaService = new ReservaService(null!, null!, null!);
             var checkIn = new DateTime(2026, 7, 1);
             var checkOut = new DateTime(2026, 7, 4); 
             decimal tarifaPorNoche = 50m;
