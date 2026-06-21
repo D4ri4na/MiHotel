@@ -25,4 +25,12 @@ describe('Pruebas Unitarias - Lógica de Negocio Frontend', () => {
     expect(HORA_LIMITE_CHECKOUT).toBe(12);
   });
 
+  test('Debe retornar false si el Check-Out es anterior al Check-In', () => {
+      const checkIn = '2026-08-15';
+      const checkOut = '2026-08-10'; 
+
+      const esValido = validarFechasReserva(checkIn, checkOut);
+
+      expect(esValido).toBe(false);
+  });
 });
