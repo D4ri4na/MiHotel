@@ -99,7 +99,12 @@ namespace MiHotelBackend.Services
 
         public decimal CalcularTotalEstadia(DateTime checkIn, DateTime checkOut, decimal tarifaNoche)
         {
-            int noches = (checkOut - checkIn).Days;
+            if (checkOut <= checkIn)
+            {
+                throw new ArgumentException("La fecha de Check-Out debe ser posterior al Check-In.");
+            }
+            
+            int noches = Math.Max(1, (checkOut - checkIn).Days);
             return noches * tarifaNoche;
         }
     }

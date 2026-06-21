@@ -70,5 +70,6 @@ namespace MiHotelBackend.Controllers
                 return BadRequest(new { error = detalle });
             }
         }
+        
     }
 }
